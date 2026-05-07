@@ -1,0 +1,71 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: traderos-postgres
+    environment:
+      POSTGRES_DB: traderos
+      POSTGRES_USER: traderos
+      POSTGRES_PASSWORD: changeme
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U traderos -d traderos || exit 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+      
+  redis:
+    image: redis:7-alpine
+    container_name: traderos-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: traderos-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/traderos
+      DB_USERNAME: traderos
+      DB_PASSWORD: changeme
+      JWT_SECRET: this-is-a-dev-secret-replace-in-production-must-be-64-chars-long
+      ENGINE_URL: http://engine:8001
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "8080:8080"
+
+
+  engine:
+    build:
+      context: ./engine
+      dockerfile: Dockerfile
+    container_name: traderos-engine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://traderos:changeme@postgres:5432/traderos
+      SPRING_CALLBACK_URL: http://api:8080/api/internal/results
+      GEMINI_API_KEY: placeholder-add-real-key-later
+      UPLOAD_DIR: /tmp/traderos-uploads
+    ports:
+      - "8001:8001"
+
+volumes:
+  postgres_data:

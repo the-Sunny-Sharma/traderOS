@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: traderos-api
+
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/traderos}
+    username: ${DB_USERNAME:traderos}
+    password: ${DB_PASSWORD:changeme}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  security:
+    # We configure this fully in Java — this disables the auto-generated password log
+    user:
+      password: disabled
+
+  threads:
+    virtual:
+      enabled: true   # Java 21 Virtual Threads — every request runs on a virtual thread
+
+  batch:
+    job:
+      enabled: false  # Don't auto-run batch jobs on startup — we trigger them manually
+
+server:
+  port: 8080
+
+jwt:
+  secret: ${JWT_SECRET:dev-secret-replace-in-production}
+  expiration-ms: 86400000  # 24 hours in milliseconds
+
+engine:
+  url: ${ENGINE_URL:http://localhost:8001}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
