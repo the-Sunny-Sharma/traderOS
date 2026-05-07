@@ -20,6 +20,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+    repositories:
+      bootstrap-mode: default
 
   flyway:
     enabled: true
@@ -30,6 +32,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+
 
   security:
     # We configure this fully in Java — this disables the auto-generated password log
