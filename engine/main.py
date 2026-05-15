@@ -1,23 +1,4 @@
-# from fastapi import FastAPI
-# from fastapi.middleware.cors import CORSMiddleware
-
-# app = FastAPI(
-#     title="TraderOS Engine",
-#     description="Tax calculation and file parsing service",
-#     version="1.0.0"
-# )
-
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["http://localhost:8080"],
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-
-# @app.get("/health")
-# def health():
-#     return {"status": "up", "service": "traderos-engine"}
-
+import traceback   
 import os
 import shutil
 import uuid
@@ -276,6 +257,7 @@ async def parse_and_assess(
     except HTTPException:
         raise
     except Exception as e:
+        traceback.print_exc()   # ← ALWAYS HAVE THIS — prints full Python traceback to docker logs
         raise HTTPException(
             status_code=500,
             detail=f"Processing failed: {str(e)}"
